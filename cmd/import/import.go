@@ -20,6 +20,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const defaultExperimentID = 1
+
 func main() {
 	args := os.Args
 
@@ -49,6 +51,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if err = initialize(destDB); err != nil {
+		log.Fatal(err)
+	}
+
 	nFiles, err := importFiles(originDB, destDB)
 	if err != nil {
 		log.Fatal(err)
@@ -67,7 +73,7 @@ func printHelp() {
 func bootstrap(db *sql.DB) error {
 	_, err := db.Exec(`
 		CREATE TABLE IF NOT EXISTS users (
-			id INTEGER, github_username TEXT, auth TEXT, role INTEGER, 
+			id INTEGER, github_username TEXT, auth TEXT, role INTEGER,
 			PRIMARY KEY (id))`)
 
 	if err != nil {
@@ -111,6 +117,21 @@ func bootstrap(db *sql.DB) error {
 	return nil
 }
 
+// initialize populates the DB with default values. It is safe to call on a
+// DB that is already initialized
+func initialize(db *sql.DB) error {
+	_, err := db.Exec(`
+		INSERT OR IGNORE INTO experiments (id, name, description)
+		VALUES ($1, 'default', 'Default experiment')`,
+		defaultExperimentID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // importFiles imports pairs of files from the origin to the destination DB.
 // It copies the contents and processes the needed data (md5 hash, diff)
 func importFiles(originDB, destDB *sql.DB) (nFiles int64, err error) {
@@ -138,7 +159,7 @@ func importFiles(originDB, destDB *sql.DB) (nFiles int64, err error) {
 			md5hash(contentA), md5hash(contentB),
 			contentA, contentB,
 			diff(contentA, contentB),
-			2) // TODO: set a valid experiment_id
+			defaultExperimentID)
 
 		if err != nil {
 			log.Println(err)
