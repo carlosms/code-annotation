@@ -32,7 +32,9 @@ func main() {
 	originPath := args[1]
 	destPath := args[2]
 
-	// TODO: check origin path exists
+	if _, err := os.Stat(originPath); os.IsNotExist(err) {
+		log.Fatalf("File %q does not exist", originPath)
+	}
 
 	originDB, err := sql.Open("sqlite3", originPath)
 	if err != nil {
@@ -67,8 +69,12 @@ func main() {
 }
 
 func printHelp() {
-	// TODO: Improve help message
-	fmt.Println("Usage: import <path-to-origin.db> <path-to-destination.db>")
+	fmt.Println(`Usage: import <path-to-origin.db> <path-to-destination.db>
+
+Both arguments refer to SQLite databases. If the destination file does not
+exist, it will be created.
+The destination database does not need to be empty, new imported file pairs can
+be added to previous imports.`)
 }
 
 // bootstrap creates the necessary tables for the output DB. It is safe to call on a
