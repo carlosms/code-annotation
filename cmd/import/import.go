@@ -12,12 +12,11 @@ import (
 	"crypto/md5"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/pmezard/go-difflib/difflib"
 )
 
 const defaultExperimentID = 1
@@ -55,12 +54,16 @@ func main() {
 		log.Fatal(err)
 	}
 
-	nFiles, err := importFiles(originDB, destDB)
+	success, failures, err := importFiles(originDB, destDB)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Imported %v file pairs successfully\n", nFiles)
+	fmt.Printf("Imported %v file pairs successfully\n", success)
+
+	if failures > 0 {
+		fmt.Printf("Failed to import %v file pairs\n", failures)
+	}
 }
 
 func printHelp() {
@@ -134,11 +137,11 @@ func initialize(db *sql.DB) error {
 
 // importFiles imports pairs of files from the origin to the destination DB.
 // It copies the contents and processes the needed data (md5 hash, diff)
-func importFiles(originDB, destDB *sql.DB) (nFiles int64, err error) {
+func importFiles(originDB, destDB *sql.DB) (success, failures int64, err error) {
 	// TODO: consider using transaction for increased speed
 	rows, err := originDB.Query("SELECT * FROM files;")
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	insert, err := destDB.Prepare(`INSERT INTO file_pairs
@@ -146,28 +149,38 @@ func importFiles(originDB, destDB *sql.DB) (nFiles int64, err error) {
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`)
 
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
 	for rows.Next() {
-		var nameA, nameB, contentA, contentB string
+		var nameA, nameB, contentA, contentB, diffText string
 		if err := rows.Scan(&nameA, &nameB, &contentA, &contentB); err != nil {
 			log.Fatal(err)
+		}
+
+		diffText, err := diff(nameA, nameB, contentA, contentB)
+		if err != nil {
+			log.Printf(
+				"Failed to create diff for files:\n - %q\n - %q\nerror: %v\n",
+				nameA, nameB, err)
+			failures++
+			continue
 		}
 
 		res, err := insert.Exec(nameA, nameB,
 			md5hash(contentA), md5hash(contentB),
 			contentA, contentB,
-			diff(contentA, contentB),
+			diffText,
 			defaultExperimentID)
 
 		if err != nil {
 			log.Println(err)
+			failures++
 			continue
 		}
 
 		rowsAffected, _ := res.RowsAffected()
-		nFiles += rowsAffected
+		success += rowsAffected
 	}
 
 	if err := rows.Err(); err != nil {
@@ -181,48 +194,19 @@ func md5hash(text string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(text)))
 }
 
-// tmpWrite creates a temporary file and writes the given text in it
-func tmpWrite(text string) (*os.File, error) {
-	tmpfile, err := ioutil.TempFile("", "annotation-import-tool")
-	if err != nil {
-		return nil, err
+func diff(nameA, nameB, contentA, contentB string) (string, error) {
+	diff := difflib.UnifiedDiff{
+		A:        difflib.SplitLines(contentA),
+		B:        difflib.SplitLines(contentB),
+		FromFile: nameA,
+		ToFile:   nameB,
+		Context:  3,
 	}
-
-	if _, err := tmpfile.Write([]byte(text)); err != nil {
-		return nil, err
-	}
-	if err := tmpfile.Close(); err != nil {
-		return nil, err
-	}
-
-	return tmpfile, nil
-}
-
-// diff returns the unified diff for the two given input strings
-func diff(textA, textB string) string {
-	tmpfileA, err := tmpWrite(textA)
-	defer os.Remove(tmpfileA.Name())
+	text, err := difflib.GetUnifiedDiffString(diff)
 
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	tmpfileB, err := tmpWrite(textB)
-	defer os.Remove(tmpfileB.Name())
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	cmd := exec.Command("diff", "-u", tmpfileA.Name(), tmpfileB.Name())
-	output, err := cmd.Output()
-
-	// TODO: check error code. Exit code 1 is not an error, it means different files
-	/*
-		if err != nil {
-			log.Fatal(err)
-		}
-	*/
-
-	return string(output)
+	return text, nil
 }
