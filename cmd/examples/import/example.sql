@@ -1,7 +1,7 @@
 /*
 Sample DB for the import command. You can create an sqlite DB with the command:
 
-$ sqlite3 sample.db < sample.sql
+$ sqlite3 example.db < example.sql
 */
 CREATE TABLE files (name_a TEXT, name_b TEXT, content_a TEXT, content_b TEXT);
 
