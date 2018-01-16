@@ -144,13 +144,14 @@ func initialize(db *sql.DB) error {
 // importFiles imports pairs of files from the origin to the destination DB.
 // It copies the contents and processes the needed data (md5 hash, diff)
 func importFiles(originDB, destDB *sql.DB) (success, failures int64, err error) {
-	// TODO: consider using transaction for increased speed
 	rows, err := originDB.Query("SELECT * FROM files;")
 	if err != nil {
 		return 0, 0, err
 	}
 
-	insert, err := destDB.Prepare(`INSERT INTO file_pairs
+	tx, err := destDB.Begin()
+
+	insert, err := tx.Prepare(`INSERT INTO file_pairs
 		(name_a, name_b, hash_a, hash_b, content_a, content_b, diff, experiment_id)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`)
 
@@ -187,6 +188,10 @@ func importFiles(originDB, destDB *sql.DB) (success, failures int64, err error) 
 
 		rowsAffected, _ := res.RowsAffected()
 		success += rowsAffected
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Fatal(err)
 	}
 
 	if err := rows.Err(); err != nil {
