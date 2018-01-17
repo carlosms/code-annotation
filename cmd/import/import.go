@@ -15,34 +15,53 @@ import (
 	"log"
 	"os"
 
+	"github.com/jessevdk/go-flags"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pmezard/go-difflib/difflib"
 )
 
 const defaultExperimentID = 1
 
+const desc = `Imports pairs of files from the input database to the output database.
+If the destination file does not exist, it will be created.
+The destination database does not need to be empty, new imported file pairs can
+be added to previous imports.`
+
+var opts struct {
+	Args struct {
+		Input  string `description:"SQLite database filepath"`
+		Output string `description:"SQLite database filepath"`
+	} `positional-args:"yes" required:"yes"`
+}
+
 func main() {
-	args := os.Args
+	parser := flags.NewParser(&opts, flags.Default)
+	parser.LongDescription = desc
 
-	if len(args) != 3 {
-		printHelp()
-		return
+	if _, err := parser.Parse(); err != nil {
+		if err, ok := err.(*flags.Error); ok {
+			if err.Type == flags.ErrHelp {
+				os.Exit(0)
+			}
+
+			fmt.Println()
+			parser.WriteHelp(os.Stdout)
+		}
+
+		os.Exit(1)
 	}
 
-	originPath := args[1]
-	destPath := args[2]
-
-	if _, err := os.Stat(originPath); os.IsNotExist(err) {
-		log.Fatalf("File %q does not exist", originPath)
+	if _, err := os.Stat(opts.Args.Input); os.IsNotExist(err) {
+		log.Fatalf("File %q does not exist", opts.Args.Input)
 	}
 
-	originDB, err := sql.Open("sqlite3", originPath)
+	originDB, err := sql.Open("sqlite3", opts.Args.Input)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer originDB.Close()
 
-	destDB, err := sql.Open("sqlite3", destPath)
+	destDB, err := sql.Open("sqlite3", opts.Args.Output)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,15 +85,6 @@ func main() {
 	if failures > 0 {
 		fmt.Printf("Failed to import %v file pairs\n", failures)
 	}
-}
-
-func printHelp() {
-	fmt.Println(`Usage: import <path-to-origin.db> <path-to-destination.db>
-
-Both arguments refer to SQLite databases. If the destination file does not
-exist, it will be created.
-The destination database does not need to be empty, new imported file pairs can
-be added to previous imports.`)
 }
 
 // bootstrap creates the necessary tables for the output DB. It is safe to call on a
