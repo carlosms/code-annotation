@@ -80,46 +80,41 @@ be added to previous imports.`)
 // bootstrap creates the necessary tables for the output DB. It is safe to call on a
 // DB that is already bootstrapped.
 func bootstrap(db *sql.DB) error {
-	_, err := db.Exec(`
-		CREATE TABLE IF NOT EXISTS users (
+	const (
+		createUsers = `CREATE TABLE IF NOT EXISTS users (
 			id INTEGER, github_username TEXT, auth TEXT, role INTEGER,
-			PRIMARY KEY (id))`)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS experiments (
+			PRIMARY KEY (id))`
+		createExperiments = `CREATE TABLE IF NOT EXISTS experiments (
 			id INTEGER, name TEXT UNIQUE, description TEXT,
-			PRIMARY KEY (id))`)
-
-	if err != nil {
-		return err
-	}
-
-	// TODO: consider a unique constrain to avoid importing identical pairs
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS file_pairs (
+			PRIMARY KEY (id))`
+		// TODO: consider a unique constrain to avoid importing identical pairs
+		createFilePairs = `CREATE TABLE IF NOT EXISTS file_pairs (
 			id INTEGER, name_a TEXT, name_b TEXT, hash_a TEXT, hash_b TEXT,
 			content_a TEXT, content_b TEXT, diff TEXT,experiment_id INTEGER,
 			PRIMARY KEY (id),
-			FOREIGN KEY(experiment_id) REFERENCES experiments(id))`)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = db.Exec(`
-		CREATE TABLE IF NOT EXISTS assignment (
+			FOREIGN KEY(experiment_id) REFERENCES experiments(id))`
+		createAssignments = `CREATE TABLE IF NOT EXISTS assignments (
 			user_id INTEGER, pair_id INTEGER, experiment_id INTEGER,
 			answer INTEGER, duration INTEGER,
 			PRIMARY KEY (user_id, pair_id),
 			FOREIGN KEY (user_id) REFERENCES users(id),
 			FOREIGN KEY (pair_id) REFERENCES file_pairs(id),
-			FOREIGN KEY (experiment_id) REFERENCES experiments(id))`)
+			FOREIGN KEY (experiment_id) REFERENCES experiments(id))`
+	)
 
-	if err != nil {
+	if _, err := db.Exec(createUsers); err != nil {
+		return err
+	}
+
+	if _, err := db.Exec(createExperiments); err != nil {
+		return err
+	}
+
+	if _, err := db.Exec(createFilePairs); err != nil {
+		return err
+	}
+
+	if _, err := db.Exec(createAssignments); err != nil {
 		return err
 	}
 
@@ -213,11 +208,6 @@ func diff(nameA, nameB, contentA, contentB string) (string, error) {
 		ToFile:   nameB,
 		Context:  3,
 	}
-	text, err := difflib.GetUnifiedDiffString(diff)
 
-	if err != nil {
-		return "", err
-	}
-
-	return text, nil
+	return difflib.GetUnifiedDiffString(diff)
 }
