@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pmezard/go-difflib/difflib"
@@ -71,9 +72,21 @@ func Initialize(db *sql.DB) error {
 	return nil
 }
 
+// Options for the ImportFiles method. Logger is optional, if it is not provided
+// the default stderr will be used.
+type Options struct {
+	Logger *log.Logger
+}
+
 // ImportFiles imports pairs of files from the origin to the destination DB.
 // It copies the contents and processes the needed data (md5 hash, diff)
-func ImportFiles(originDB, destDB *sql.DB) (success, failures int64, err error) {
+func ImportFiles(originDB, destDB *sql.DB, opts Options) (success, failures int64, e error) {
+	logger := log.New(os.Stderr, "", log.LstdFlags) // Default log to stderr
+
+	if opts.Logger != nil {
+		logger = opts.Logger
+	}
+
 	rows, err := originDB.Query("SELECT * FROM files;")
 	if err != nil {
 		return 0, 0, err
@@ -92,12 +105,12 @@ func ImportFiles(originDB, destDB *sql.DB) (success, failures int64, err error) 
 	for rows.Next() {
 		var nameA, nameB, contentA, contentB, diffText string
 		if err := rows.Scan(&nameA, &nameB, &contentA, &contentB); err != nil {
-			log.Fatal(err)
+			return success, failures, err
 		}
 
 		diffText, err := diff(nameA, nameB, contentA, contentB)
 		if err != nil {
-			log.Printf(
+			logger.Printf(
 				"Failed to create diff for files:\n - %q\n - %q\nerror: %v\n",
 				nameA, nameB, err)
 			failures++
@@ -111,7 +124,7 @@ func ImportFiles(originDB, destDB *sql.DB) (success, failures int64, err error) 
 			defaultExperimentID)
 
 		if err != nil {
-			log.Println(err)
+			logger.Println(err)
 			failures++
 			continue
 		}
@@ -121,14 +134,14 @@ func ImportFiles(originDB, destDB *sql.DB) (success, failures int64, err error) 
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Fatal(err)
+		return success, failures, err
 	}
 
 	if err := rows.Err(); err != nil {
-		log.Fatal(err)
+		return success, failures, err
 	}
 
-	return
+	return success, failures, nil
 }
 
 func md5hash(text string) string {

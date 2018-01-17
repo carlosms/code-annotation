@@ -73,7 +73,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	success, failures, err := dbutil.ImportFiles(originDB, destDB)
+	success, failures, err := dbutil.ImportFiles(originDB, destDB, dbutil.Options{})
 	if err != nil {
 		log.Fatal(err)
 	}
