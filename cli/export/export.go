@@ -62,7 +62,7 @@ func copy(source, destination string) error {
 	}
 	defer src.Close()
 
-	dst, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE|os.O_TRUNC|os.O_EXCL, 0666)
+	dst, err := os.OpenFile(destination, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
 	if err != nil {
 		return err
 	}
