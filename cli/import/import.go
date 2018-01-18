@@ -14,16 +14,21 @@ import (
 	"log"
 	"os"
 
-	"github.com/jessevdk/go-flags"
 	"github.com/src-d/code-annotation/server/dbutil"
+
+	"github.com/jessevdk/go-flags"
 )
 
 const defaultExperimentID = 1
 
+// TODO: remove duplicated entries note if we decide to enforce the UNIQUE clause
 const desc = `Imports pairs of files from the input database to the output database.
 If the destination file does not exist, it will be created.
+
 The destination database does not need to be empty, new imported file pairs can
-be added to previous imports.`
+be added to previous imports.
+Please note: if a file pair is identical to an existing one it will not be
+detected. A new pair entry will be created with the same contents.`
 
 var opts struct {
 	Args struct {

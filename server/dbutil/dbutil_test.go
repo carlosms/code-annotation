@@ -23,32 +23,38 @@ func (suite *DBUtilSuite) TestMD5() {
 	}
 }
 
-func readFile(filename string) string {
+func readFile(filename string) (string, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return string(data)
+	return string(data), nil
 }
 
 func (suite *DBUtilSuite) TestDiff() {
-	a := readFile("./testdata/a.txt")
-	b := readFile("./testdata/b.txt")
-	c := readFile("./testdata/c.txt")
+	assert := suite.Assert()
 
-	ab := readFile("./testdata/ab.diff")
-	ac := readFile("./testdata/ac.diff")
+	a, err := readFile("./testdata/a.txt")
+	assert.NoError(err)
+	b, err := readFile("./testdata/b.txt")
+	assert.NoError(err)
+	c, err := readFile("./testdata/c.txt")
+	assert.NoError(err)
+
+	ab, err := readFile("./testdata/ab.diff")
+	assert.NoError(err)
+	ac, err := readFile("./testdata/ac.diff")
+	assert.NoError(err)
 
 	abDiff, err := diff("a.txt", "b.txt", a, b)
 
-	assert := suite.Assert()
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(ab, abDiff)
 
 	acDiff, err := diff("a.txt", "c.txt", a, c)
 
-	assert.Nil(err)
+	assert.NoError(err)
 	assert.Equal(ac, acDiff)
 }
 
