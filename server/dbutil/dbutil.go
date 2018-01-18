@@ -98,7 +98,9 @@ func ImportFiles(originDB, destDB *sql.DB, opts Options) (success, failures int6
 	for rows.Next() {
 		var nameA, nameB, contentA, contentB, diffText string
 		if err := rows.Scan(&nameA, &nameB, &contentA, &contentB); err != nil {
-			return success, failures, err
+			logger.Printf("Failed to read row from origin DB\nerror: %v\n", err)
+			failures++
+			continue
 		}
 
 		diffText, err := diff(nameA, nameB, contentA, contentB)
@@ -127,7 +129,7 @@ func ImportFiles(originDB, destDB *sql.DB, opts Options) (success, failures int6
 	}
 
 	if err := tx.Commit(); err != nil {
-		return success, failures, err
+		return 0, success + failures, err
 	}
 
 	if err := rows.Err(); err != nil {
