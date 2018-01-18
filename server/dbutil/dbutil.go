@@ -132,11 +132,7 @@ func ImportFiles(originDB, destDB *sql.DB, opts Options) (success, failures int6
 		return 0, success + failures, err
 	}
 
-	if err := rows.Err(); err != nil {
-		return success, failures, err
-	}
-
-	return success, failures, nil
+	return success, failures, rows.Err()
 }
 
 func md5hash(text string) string {
