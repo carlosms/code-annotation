@@ -38,20 +38,13 @@ func Bootstrap(db *sql.DB) error {
 			FOREIGN KEY (experiment_id) REFERENCES experiments(id))`
 	)
 
-	if _, err := db.Exec(createUsers); err != nil {
-		return err
-	}
+	tables := []string{createUsers, createExperiments,
+		createFilePairs, createAssignments}
 
-	if _, err := db.Exec(createExperiments); err != nil {
-		return err
-	}
-
-	if _, err := db.Exec(createFilePairs); err != nil {
-		return err
-	}
-
-	if _, err := db.Exec(createAssignments); err != nil {
-		return err
+	for _, table := range tables {
+		if _, err := db.Exec(table); err != nil {
+			return err
+		}
 	}
 
 	return nil
