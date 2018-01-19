@@ -22,10 +22,12 @@ const (
 			PRIMARY KEY (id))`
 	// TODO: consider a unique constrain to avoid importing identical pairs
 	createFilePairs = `CREATE TABLE IF NOT EXISTS file_pairs (
-			id INTEGER, name_a TEXT, name_b TEXT, hash_a TEXT, hash_b TEXT,
-			content_a TEXT, content_b TEXT, diff TEXT,experiment_id INTEGER,
-			PRIMARY KEY (id),
-			FOREIGN KEY(experiment_id) REFERENCES experiments(id))`
+		id INTEGER,
+		blob_id_a TEXT, repository_id_a TEXT, commit_hash_a TEXT, path_a TEXT, content_a TEXT, hash_a TEXT,
+		blob_id_b TEXT, repository_id_b TEXT, commit_hash_b TEXT, path_b TEXT, content_b TEXT, hash_b TEXT,
+		score DOUBLE PRECISION, diff TEXT, experiment_id INTEGER,
+		PRIMARY KEY (id),
+		FOREIGN KEY(experiment_id) REFERENCES experiments(id))`
 	createAssignments = `CREATE TABLE IF NOT EXISTS assignments (
 			user_id INTEGER, pair_id INTEGER, experiment_id INTEGER,
 			answer INTEGER, duration INTEGER,
@@ -41,9 +43,11 @@ const insertExperiments = `INSERT OR IGNORE INTO experiments
 
 const selectFiles = `SELECT * FROM files`
 
-const insertFilePairs = `INSERT INTO file_pairs
-		(name_a, name_b, hash_a, hash_b, content_a, content_b, diff, experiment_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+const insertFilePairs = `INSERT INTO file_pairs (
+		blob_id_a, repository_id_a, commit_hash_a, path_a, content_a, hash_a,
+		blob_id_b, repository_id_b, commit_hash_b, path_b, content_b, hash_b,
+		score, diff, experiment_id ) VALUES
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`
 
 // Bootstrap creates the necessary tables for the output DB. It is safe to call on a
 // DB that is already bootstrapped.
@@ -97,25 +101,34 @@ func ImportFiles(originDB, destDB *sql.DB, opts Options) (success, failures int6
 	}
 
 	for rows.Next() {
-		var nameA, nameB, contentA, contentB, diffText string
-		if err := rows.Scan(&nameA, &nameB, &contentA, &contentB); err != nil {
+		var blobIDA, repositoryIDA, commitHashA, pathA, contentA,
+			blobIDB, repositoryIDB, commitHashB, pathB, contentB string
+		var score float64
+
+		err := rows.Scan(
+			&blobIDA, &repositoryIDA, &commitHashA, &pathA, &contentA,
+			&blobIDB, &repositoryIDB, &commitHashB, &pathB, &contentB,
+			&score)
+
+		if err != nil {
 			logger.Printf("Failed to read row from origin DB\nerror: %v\n", err)
 			failures++
 			continue
 		}
 
-		diffText, err := diff(nameA, nameB, contentA, contentB)
+		diffText, err := diff(pathA, pathB, contentA, contentB)
 		if err != nil {
 			logger.Printf(
 				"Failed to create diff for files:\n - %q\n - %q\nerror: %v\n",
-				nameA, nameB, err)
+				pathA, pathB, err)
 			failures++
 			continue
 		}
 
-		res, err := insert.Exec(nameA, nameB,
-			md5hash(contentA), md5hash(contentB),
-			contentA, contentB,
+		res, err := insert.Exec(
+			blobIDA, repositoryIDA, commitHashA, pathA, contentA, md5hash(contentA),
+			blobIDB, repositoryIDB, commitHashB, pathB, contentB, md5hash(contentB),
+			score,
 			diffText,
 			defaultExperimentID)
 

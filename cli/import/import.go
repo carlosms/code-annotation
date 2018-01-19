@@ -19,8 +19,6 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
-const defaultExperimentID = 1
-
 // TODO: remove duplicated entries note if we decide to enforce the UNIQUE clause
 const desc = `Imports pairs of files from the input database to the output database.
 If the destination file does not exist, it will be created.
