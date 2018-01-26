@@ -3,7 +3,7 @@ Tool to export annotation results from the internal DB to an output DB.
 It does a simple copy&paste of the internal DB. The annotation results are
 stored in the assignments table.
 
-Usage: export DSN DSN
+Usage: import <origin-DSN> <path-to-sqlite.db>
 
 Where DSN can be one of:
 sqlite:///path/to/db.db
@@ -24,7 +24,7 @@ import (
 const desc = `Exports annotation results from the internal input database to a new output
 database. The destination database must be empty.
 
-The arguments must be one of:
+The Input argument must be one of:
 sqlite:///path/to/db.db
 postgresql://[user[:password]@][netloc][:port][,...][/dbname]
 
@@ -34,7 +34,7 @@ https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRI
 var opts struct {
 	Args struct {
 		Input  string `description:"SQLite or PostgreSQL Data Source Name"`
-		Output string `description:"SQLite or PostgreSQL Data Source Name"`
+		Output string `description:"SQLite database filepath"`
 	} `positional-args:"yes" required:"yes"`
 }
 
@@ -61,7 +61,7 @@ func main() {
 	}
 	defer originDB.Close()
 
-	destDB, err := dbutil.Open(opts.Args.Output, false)
+	destDB, err := dbutil.OpenSQLite(opts.Args.Output, false)
 	if err != nil {
 		log.Fatal(err)
 	}

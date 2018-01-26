@@ -79,12 +79,30 @@ const insertFilePairs = `INSERT INTO file_pairs (
 		score, diff, experiment_id ) VALUES
 		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`
 
+var (
+	sqliteReg = regexp.MustCompile(`^sqlite://(.+)$`)
+	psReg     = regexp.MustCompile(`^postgres(ql)?:.+$`)
+)
+
+// OpenSQLite calls Open, but using a path to an SQLite file. For sintactic
+// sugar a sqlite://path string is also accepted
+func OpenSQLite(filepath string, checkExisting bool) (DB, error) {
+	if psReg.MatchString(filepath) {
+		return DB{nil, none}, fmt.Errorf(
+			"Invalid PostgreSQL connection string %q, a path to an SQLite file was expected",
+			filepath)
+	}
+
+	if !sqliteReg.MatchString(filepath) {
+		filepath = `sqlite://` + filepath
+	}
+
+	return Open(filepath, checkExisting)
+}
+
 // Open returns a DB from the connection string.
 // With checkExisting it will fail if the DB does not exist
 func Open(connection string, checkExisting bool) (DB, error) {
-	sqliteReg := regexp.MustCompile(`^sqlite://(.+)$`)
-	psReg := regexp.MustCompile(`^postgres(ql)?:.+$`)
-
 	if conn := sqliteReg.FindStringSubmatch(connection); conn != nil {
 		if checkExisting {
 			if _, err := os.Stat(conn[1]); os.IsNotExist(err) {
