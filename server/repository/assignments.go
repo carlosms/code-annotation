@@ -33,6 +33,7 @@ func (repo *Assignments) Initialize(userID int, experimentID int) ([]*model.Assi
 	if err != nil {
 		return nil, fmt.Errorf("Error getting file_pairs from the DB: %v", err)
 	}
+	defer rows.Close()
 
 	duration := 0
 
@@ -105,6 +106,7 @@ func (repo *Assignments) GetAll(userID, experimentID int) ([]*model.Assignment, 
 	if err != nil {
 		return nil, fmt.Errorf("Error getting assignments from the DB: %v", err)
 	}
+	defer rows.Close()
 
 	results := make([]*model.Assignment, 0)
 

@@ -190,6 +190,7 @@ func ImportFiles(originDB DB, destDB DB, opts Options) (success, failures int64,
 	if err != nil {
 		return 0, 0, err
 	}
+	defer rows.Close()
 
 	tx, err := destDB.Begin()
 	if err != nil {

@@ -46,6 +46,7 @@ func Copy(originDB DB, destDB DB, opts Options) error {
 		if err != nil {
 			return err
 		}
+		defer rows.Close()
 
 		columnNames, _ := rows.Columns()
 		nColumns := len(columnNames)
