@@ -9,7 +9,12 @@ import (
 
 // Assignments repository
 type Assignments struct {
-	DB *sql.DB
+	db *sql.DB
+}
+
+// NewAssignments returns a new Assignments repository
+func NewAssignments(db *sql.DB) *Assignments {
+	return &Assignments{db: db}
 }
 
 // ErrNoAssignmentsInitialized is the error returned when the Assignments of a
@@ -18,7 +23,7 @@ var ErrNoAssignmentsInitialized = fmt.Errorf("No assignments initialized")
 
 // Initialize builds the assignments for the given user and experiment IDs
 func (repo *Assignments) Initialize(userID int, experimentID int) ([]*model.Assignment, error) {
-	tx, err := repo.DB.Begin()
+	tx, err := repo.db.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +33,7 @@ func (repo *Assignments) Initialize(userID int, experimentID int) ([]*model.Assi
 		return nil, fmt.Errorf("DB error: %v", err)
 	}
 
-	rows, err := repo.DB.Query(
+	rows, err := repo.db.Query(
 		"SELECT id FROM file_pairs WHERE experiment_id=$1", experimentID)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting file_pairs from the DB: %v", err)
@@ -58,7 +63,7 @@ func (repo *Assignments) Initialize(userID int, experimentID int) ([]*model.Assi
 // Create stores an Assignment into the DB, and returns that new Assignment
 func (repo *Assignments) Create(as *model.Assignment) error {
 
-	_, err := repo.DB.Exec(
+	_, err := repo.db.Exec(
 		`INSERT INTO assignments (user_id, pair_id, experiment_id, answer, duration)
 		VALUES ($1, $2, $3, $4, $5)`,
 		as.UserID, as.PairID, as.ExperimentID, as.Answer, as.Duration)
@@ -92,7 +97,7 @@ func (repo *Assignments) getWithQuery(queryRow *sql.Row) (*model.Assignment, err
 // Get returns the Assignment for the given user and pair IDs. If the Assignment
 // does not exist, it returns nil, nil
 func (repo *Assignments) Get(userID, pairID int) (*model.Assignment, error) {
-	return repo.getWithQuery(repo.DB.QueryRow(
+	return repo.getWithQuery(repo.db.QueryRow(
 		"SELECT * FROM assignments WHERE user_id=$1 AND pair_id=$2",
 		userID, pairID))
 }
@@ -100,7 +105,7 @@ func (repo *Assignments) Get(userID, pairID int) (*model.Assignment, error) {
 // GetAll returns all the Assignments for the given user and experiment IDs.
 // Returns an ErrNoAssignmentsInitialized if they do not exist yet
 func (repo *Assignments) GetAll(userID, experimentID int) ([]*model.Assignment, error) {
-	rows, err := repo.DB.Query(
+	rows, err := repo.db.Query(
 		"SELECT * FROM assignments WHERE user_id=$1 AND experiment_id=$2",
 		userID, experimentID)
 	if err != nil {
@@ -140,7 +145,7 @@ func (repo *Assignments) Update(userID int, pairID int, answer string, duration 
 		"UPDATE assignments SET answer='%v', duration=%v WHERE user_id=%v AND pair_id=%v",
 		answer, duration, userID, pairID)
 
-	_, err := repo.DB.Exec(cmd)
+	_, err := repo.db.Exec(cmd)
 
 	return err
 }

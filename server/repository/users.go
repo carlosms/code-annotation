@@ -9,13 +9,18 @@ import (
 
 // Users repository
 type Users struct {
-	DB *sql.DB
+	db *sql.DB
+}
+
+// NewUsers returns a new Users repository
+func NewUsers(db *sql.DB) *Users {
+	return &Users{db: db}
 }
 
 // Create stores a User into the DB, and returns that new User
 func (repo *Users) Create(user *model.User) error {
 
-	_, err := repo.DB.Exec(
+	_, err := repo.db.Exec(
 		"INSERT INTO users (login, username, avatar_url, role) VALUES ($1, $2, $3, $4)",
 		user.Login, user.Username, user.AvatarURL, user.Role)
 
@@ -49,12 +54,12 @@ func (repo *Users) getWithQuery(queryRow *sql.Row) (*model.User, error) {
 func (repo *Users) Get(login string) (*model.User, error) {
 	// TODO: escape login string
 	return repo.getWithQuery(
-		repo.DB.QueryRow("SELECT * FROM users WHERE login=$1", login))
+		repo.db.QueryRow("SELECT * FROM users WHERE login=$1", login))
 }
 
 // GetByID returns the User with the given ID. If the User does not
 // exist, it returns nil, nil
 func (repo *Users) GetByID(id int) (*model.User, error) {
 	return repo.getWithQuery(
-		repo.DB.QueryRow("SELECT * FROM users WHERE id=$1", id))
+		repo.db.QueryRow("SELECT * FROM users WHERE id=$1", id))
 }

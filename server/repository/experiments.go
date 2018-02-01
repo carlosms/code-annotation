@@ -9,7 +9,12 @@ import (
 
 // Experiments repository
 type Experiments struct {
-	DB *sql.DB
+	db *sql.DB
+}
+
+// NewExperiments returns a new Experiments repository
+func NewExperiments(db *sql.DB) *Experiments {
+	return &Experiments{db: db}
 }
 
 // Create stores an Experiment into the DB, and returns that new Experiment
@@ -18,7 +23,7 @@ func (repo *Experiments) Create(exp *model.Experiment) error {
 	// the name should be safely escaped
 	return fmt.Errorf("Not implemented")
 
-	_, err := repo.DB.Exec(
+	_, err := repo.db.Exec(
 		"INSERT INTO experiments (name, description) VALUES ($1, $2)",
 		exp.Name, exp.Description)
 
@@ -55,12 +60,12 @@ func (repo *Experiments) Get(name string) (*model.Experiment, error) {
 	return nil, fmt.Errorf("Not implemented")
 
 	return repo.getWithQuery(
-		repo.DB.QueryRow("SELECT * FROM experiments WHERE name=$1", name))
+		repo.db.QueryRow("SELECT * FROM experiments WHERE name=$1", name))
 }
 
 // GetByID returns the Experiment with the given ID. If the Experiment does not
 // exist, it returns nil, nil
 func (repo *Experiments) GetByID(id int) (*model.Experiment, error) {
 	return repo.getWithQuery(
-		repo.DB.QueryRow("SELECT * FROM experiments WHERE id=$1", id))
+		repo.db.QueryRow("SELECT * FROM experiments WHERE id=$1", id))
 }

@@ -25,10 +25,10 @@ func Router(
 ) http.Handler {
 
 	// create repos
-	userRepo := &repository.Users{DB: db}
-	experimentRepo := &repository.Experiments{DB: db}
-	assignmentRepo := &repository.Assignments{DB: db}
-	filePairRepo := &repository.FilePairs{DB: db}
+	userRepo := repository.NewUsers(db)
+	experimentRepo := repository.NewExperiments(db)
+	assignmentRepo := repository.NewAssignments(db)
+	filePairRepo := repository.NewFilePairs(db)
 
 	// cors options
 	corsOptions := cors.Options{

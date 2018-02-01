@@ -9,7 +9,12 @@ import (
 
 // FilePairs repository
 type FilePairs struct {
-	DB *sql.DB
+	db *sql.DB
+}
+
+// NewFilePairs returns a new FilePairs repository
+func NewFilePairs(db *sql.DB) *FilePairs {
+	return &FilePairs{db: db}
 }
 
 // getWithQuery builds a FilePair from the given sql QueryRow. If the FilePair
@@ -38,5 +43,5 @@ func (repo *FilePairs) getWithQuery(queryRow *sql.Row) (*model.FilePair, error) 
 // exist, it returns nil, nil
 func (repo *FilePairs) GetByID(id int) (*model.FilePair, error) {
 	return repo.getWithQuery(
-		repo.DB.QueryRow("SELECT * FROM file_pairs WHERE id=$1", id))
+		repo.db.QueryRow("SELECT * FROM file_pairs WHERE id=$1", id))
 }
