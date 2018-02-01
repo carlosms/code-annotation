@@ -27,8 +27,10 @@ class Experiment extends Component {
 
     return (
       <div className="ex-page">
+        <Grid fluid className="ex-page__main">
         <PageHeader {...user} />
         {this.renderMain()}
+        </Grid>
       </div>
     );
   }
@@ -57,7 +59,7 @@ class Experiment extends Component {
     }
 
     return (
-      <Grid fluid className="ex-page__main">
+      <React.Fragment>
         <Row className="ex-page__header">
           <Col xs={9} className="ex-page__info">
             <span className="ex-page__name">{name}</span>
@@ -68,7 +70,7 @@ class Experiment extends Component {
           </Col>
         </Row>
         {this.renderContent()}
-      </Grid>
+      </React.Fragment>
     );
   }
 
@@ -95,7 +97,7 @@ class Experiment extends Component {
     }
 
     return (
-      <Row className="ex-page__content">
+      <React.Fragment>
         <Diff diffString={diffString} className="ex-page__diff" />
         <Footer
           className="ex-page__footer"
@@ -108,7 +110,7 @@ class Experiment extends Component {
           skip={skip}
           finish={finish}
         />
-      </Row>
+      </React.Fragment>
     );
   }
 }

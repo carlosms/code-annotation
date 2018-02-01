@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import { Row, Col} from 'react-bootstrap';
 import { Diff2Html } from 'diff2html';
 import 'diff2html/dist/diff2html.css';
 import './Diff.less';
@@ -15,10 +16,11 @@ class Diff extends PureComponent {
       matchingMaxComparisons: 2500,
     });
     return (
-      <div
-        className={className}
-        dangerouslySetInnerHTML={{ __html: diffHTML }}
-      />
+      <Row className={className}>
+        <Col className="full-height" xs={12}>
+          <div className="full-height" dangerouslySetInnerHTML={{ __html: diffHTML }} />
+        </Col>
+      </Row>
     );
   }
 }

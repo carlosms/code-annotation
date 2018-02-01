@@ -2,14 +2,16 @@
 @import '../components/PageHeader.less';
 @import '../components/Experiment/Footer.less';
 
-@ex-page-header-inner-height: 23px; // this value depends on content, update it if you change block
+//@ex-page-header-inner-height: 23px; // this value depends on content, update it if you change block
 @ex-page-header-margin-bottom: 20px;
 @ex-page-diff-padding-bottom: 10px;
 @ex-page-footer-margin-bottom: 10px;
 
+/*
 @ex-page-diff-lift-height: @navbar-total-height + @ex-page-header-inner-height +
     @ex-page-header-margin-bottom + @ex-footer-height +
     @ex-page-footer-margin-bottom;
+*/
 
 .ex-page {
     height: 100%;
@@ -21,6 +23,8 @@
 
     &__main {
         height: 100%;
+        display: flex;
+        flex-flow: column;
     }
 
     &__loader {
@@ -45,6 +49,11 @@
     &__diff {
         height: 100%;
 
+        flex: 1;
+        overflow: hidden;
+
+        padding-bottom: @ex-page-diff-padding-bottom;
+
         // this is the only way I know to create 100% height page
         // with header & footer & scrollable content in the middle (without flexbox)
         //
@@ -57,9 +66,9 @@
         // Calculating height
         // NB!!!! layout will be broken if any of inner heights are changed
         // and variables aren't updated
-        padding-bottom: @ex-page-diff-lift-height + @ex-page-diff-padding-bottom;
+        //padding-bottom: @ex-page-diff-lift-height + @ex-page-diff-padding-bottom;
         // same as on top, but without padding of diff block iself
-        margin-bottom: -@ex-page-diff-lift-height;
+        //margin-bottom: -@ex-page-diff-lift-height;
     }
 
     &__footer {
