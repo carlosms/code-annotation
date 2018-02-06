@@ -64,7 +64,7 @@ func SaveAssignment(repo *repository.Assignments) RequestProcessFunc {
 		}
 
 		if userID != assignment.UserID {
-			return nil, serializer.NewHTTPError(http.StatusUnauthorized,
+			return nil, serializer.NewHTTPError(http.StatusForbidden,
 				"logged in user is not the assignment's owner")
 		}
 

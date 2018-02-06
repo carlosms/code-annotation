@@ -17,7 +17,8 @@ func NewUsers(db *sql.DB) *Users {
 	return &Users{db: db}
 }
 
-// Create stores a User into the DB, and returns that new User
+// Create stores a User into the DB. If the User is created, the argument
+// is updated to point to that new User
 func (repo *Users) Create(user *model.User) error {
 
 	_, err := repo.db.Exec(
@@ -28,7 +29,11 @@ func (repo *Users) Create(user *model.User) error {
 		return err
 	}
 
-	user, err = repo.Get(user.Login)
+	newUser, err := repo.Get(user.Login)
+	if newUser != nil {
+		*user = *newUser
+	}
+
 	return err
 }
 

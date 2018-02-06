@@ -22,11 +22,13 @@ func NewFilePairs(db *sql.DB) *FilePairs {
 func (repo *FilePairs) getWithQuery(queryRow *sql.Row) (*model.FilePair, error) {
 	var pair model.FilePair
 
-	var a, b model.File
-
 	err := queryRow.Scan(&pair.ID,
-		&a.BlobID, &a.RepositoryID, &a.CommitHash, &a.Path, &a.Content, &a.Hash,
-		&b.BlobID, &b.RepositoryID, &b.CommitHash, &b.Path, &b.Content, &b.Hash,
+		&pair.Left.BlobID, &pair.Left.RepositoryID, &pair.Left.CommitHash,
+		&pair.Left.Path, &pair.Left.Content, &pair.Left.Hash,
+
+		&pair.Right.BlobID, &pair.Right.RepositoryID, &pair.Right.CommitHash,
+		&pair.Right.Path, &pair.Right.Content, &pair.Right.Hash,
+
 		&pair.Score, &pair.Diff, &pair.ExperimentID)
 
 	switch {
