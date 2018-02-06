@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -29,7 +28,7 @@ func GetAssignmentsForUserExperiment(repo *repository.Assignments) RequestProces
 		assignments, err := repo.GetAll(userID, experimentID)
 		if err == repository.ErrNoAssignmentsInitialized {
 			if assignments, err = repo.Initialize(userID, experimentID); err != nil {
-				return nil, fmt.Errorf("no available assignments")
+				return nil, err
 			}
 		}
 
@@ -77,12 +76,12 @@ func SaveAssignment(repo *repository.Assignments) RequestProcessFunc {
 		}
 
 		if err != nil {
-			return nil, fmt.Errorf("payload could not be read")
+			return nil, err
 		}
 
 		err = repo.Update(assignmentID, assignmentRequest.Answer, assignmentRequest.Duration)
 		if err != nil {
-			return nil, fmt.Errorf("answer could not be saved")
+			return nil, err
 		}
 
 		return serializer.NewCountResponse(1), nil

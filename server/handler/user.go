@@ -18,7 +18,11 @@ func Me(usersRepo *repository.Users) RequestProcessFunc {
 		}
 
 		u, err := usersRepo.GetByID(userID)
-		if err != nil || u == nil {
+		if err != nil {
+			return nil, err
+		}
+
+		if u == nil {
 			return nil, serializer.NewHTTPError(http.StatusNotFound, "user not found")
 		}
 

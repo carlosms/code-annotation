@@ -18,6 +18,10 @@ func GetExperimentDetails(repo *repository.Experiments) RequestProcessFunc {
 
 		experiment, err := repo.GetByID(experimentID)
 		if err != nil {
+			return nil, err
+		}
+
+		if experiment == nil {
 			return nil, serializer.NewHTTPError(http.StatusNotFound, "no experiment found")
 		}
 

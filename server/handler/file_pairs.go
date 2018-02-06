@@ -16,11 +16,15 @@ func GetFilePairDetails(repo *repository.FilePairs) RequestProcessFunc {
 			return nil, err
 		}
 
-		pairFiles, err := repo.GetByID(pairID)
+		filePair, err := repo.GetByID(pairID)
 		if err != nil {
+			return nil, err
+		}
+
+		if filePair == nil {
 			return nil, serializer.NewHTTPError(http.StatusNotFound, "no file-pair found")
 		}
 
-		return serializer.NewFilePairResponse(pairFiles), nil
+		return serializer.NewFilePairResponse(filePair), nil
 	}
 }
