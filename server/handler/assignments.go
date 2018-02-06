@@ -45,14 +45,28 @@ type assignmentRequest struct {
 // SaveAssignment returns a function that saves the user answers as passed in the body request
 func SaveAssignment(repo *repository.Assignments) RequestProcessFunc {
 	return func(r *http.Request) (*serializer.Response, error) {
-		pairID, err := urlParamInt(r, "pairId")
+		assignmentID, err := urlParamInt(r, "assignmentId")
 		if err != nil {
 			return nil, err
+		}
+
+		assignment, err := repo.GetByID(assignmentID)
+		if err != nil {
+			return nil, err
+		}
+
+		if assignment == nil {
+			return nil, serializer.NewHTTPError(http.StatusNotFound, "assignment not found")
 		}
 
 		userID, err := service.GetUserID(r.Context())
 		if err != nil {
 			return nil, err
+		}
+
+		if userID != assignment.UserID {
+			return nil, serializer.NewHTTPError(http.StatusUnauthorized,
+				"logged in user is not the assignment's owner")
 		}
 
 		var assignmentRequest assignmentRequest
@@ -66,7 +80,7 @@ func SaveAssignment(repo *repository.Assignments) RequestProcessFunc {
 			return nil, fmt.Errorf("payload could not be read")
 		}
 
-		err = repo.Update(userID, pairID, assignmentRequest.Answer, assignmentRequest.Duration)
+		err = repo.Update(assignmentID, assignmentRequest.Answer, assignmentRequest.Duration)
 		if err != nil {
 			return nil, fmt.Errorf("answer could not be saved")
 		}

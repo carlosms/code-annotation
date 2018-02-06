@@ -54,9 +54,11 @@ const (
 		PRIMARY KEY (id),
 		FOREIGN KEY(experiment_id) REFERENCES experiments(id))`
 	createAssignments = `CREATE TABLE IF NOT EXISTS assignments (
+			id <INCREMENT_TYPE>,
 			user_id INTEGER, pair_id INTEGER, experiment_id INTEGER,
 			answer TEXT, duration INTEGER,
-			PRIMARY KEY (user_id, pair_id),
+			PRIMARY KEY (id),
+			UNIQUE (user_id, pair_id, experiment_id),
 			FOREIGN KEY (user_id) REFERENCES users(id),
 			FOREIGN KEY (pair_id) REFERENCES file_pairs(id),
 			FOREIGN KEY (experiment_id) REFERENCES experiments(id))`

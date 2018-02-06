@@ -28,7 +28,9 @@ func (repo *Assignments) Initialize(userID int, experimentID int) ([]*model.Assi
 		return nil, err
 	}
 
-	insert, err := tx.Prepare("INSERT INTO assignments VALUES ($1, $2, $3, $4, $5)")
+	insert, err := tx.Prepare(
+		`INSERT INTO assignments (user_id, pair_id, experiment_id, answer, duration)
+		VALUES ($1, $2, $3, $4, $5)`)
 	if err != nil {
 		return nil, fmt.Errorf("DB error: %v", err)
 	}
@@ -64,15 +66,15 @@ func (repo *Assignments) Initialize(userID int, experimentID int) ([]*model.Assi
 func (repo *Assignments) Create(as *model.Assignment) error {
 
 	_, err := repo.db.Exec(
-		`INSERT INTO assignments (user_id, pair_id, experiment_id, answer, duration)
-		VALUES ($1, $2, $3, $4, $5)`,
-		as.UserID, as.PairID, as.ExperimentID, as.Answer, as.Duration)
+		`INSERT INTO assignments (id, user_id, pair_id, experiment_id, answer, duration)
+		VALUES ($1, $2, $3, $4, $5, $6)`,
+		as.ID, as.UserID, as.PairID, as.ExperimentID, as.Answer, as.Duration)
 
 	if err != nil {
 		return err
 	}
 
-	as, err = repo.Get(as.UserID, as.PairID)
+	as, err = repo.Get(as.UserID, as.PairID, as.ExperimentID)
 	return err
 }
 
@@ -81,8 +83,8 @@ func (repo *Assignments) Create(as *model.Assignment) error {
 func (repo *Assignments) getWithQuery(queryRow *sql.Row) (*model.Assignment, error) {
 	var as model.Assignment
 
-	err := queryRow.Scan(
-		&as.UserID, &as.PairID, &as.ExperimentID, &as.Answer, &as.Duration)
+	err := queryRow.Scan(&as.ID, &as.UserID, &as.PairID, &as.ExperimentID,
+		&as.Answer, &as.Duration)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -94,12 +96,19 @@ func (repo *Assignments) getWithQuery(queryRow *sql.Row) (*model.Assignment, err
 	}
 }
 
-// Get returns the Assignment for the given user and pair IDs. If the Assignment
-// does not exist, it returns nil, nil
-func (repo *Assignments) Get(userID, pairID int) (*model.Assignment, error) {
+// GetByID returns the Assignment with the given ID. If the Assignment does not
+// exist, it returns nil, nil
+func (repo *Assignments) GetByID(id int) (*model.Assignment, error) {
+	return repo.getWithQuery(
+		repo.db.QueryRow("SELECT * FROM assignments WHERE id=$1", id))
+}
+
+// Get returns the Assignment for the given user, pair and experiment IDs. If
+// the Assignment does not exist, it returns nil, nil
+func (repo *Assignments) Get(userID, pairID, experimentID int) (*model.Assignment, error) {
 	return repo.getWithQuery(repo.db.QueryRow(
-		"SELECT * FROM assignments WHERE user_id=$1 AND pair_id=$2",
-		userID, pairID))
+		"SELECT * FROM assignments WHERE user_id=$1 AND pair_id=$2 AND experiment_id=$3",
+		userID, pairID, experimentID))
 }
 
 // GetAll returns all the Assignments for the given user and experiment IDs.
@@ -117,8 +126,8 @@ func (repo *Assignments) GetAll(userID, experimentID int) ([]*model.Assignment, 
 
 	for rows.Next() {
 		var as model.Assignment
-		rows.Scan(
-			&as.UserID, &as.PairID, &as.ExperimentID, &as.Answer, &as.Duration)
+		rows.Scan(&as.ID, &as.UserID, &as.PairID, &as.ExperimentID,
+			&as.Answer, &as.Duration)
 
 		results = append(results, &as)
 	}
@@ -136,14 +145,14 @@ func (repo *Assignments) GetAll(userID, experimentID int) ([]*model.Assignment, 
 
 // Update updates the Assignment identified by the given user and pair IDs,
 // with the given answer and duration
-func (repo *Assignments) Update(userID int, pairID int, answer string, duration int) error {
+func (repo *Assignments) Update(assignmentID int, answer string, duration int) error {
 	if _, ok := model.Answers[answer]; !ok {
 		return fmt.Errorf("Wrong answer provided: '%s'", answer)
 	}
 
 	cmd := fmt.Sprintf(
-		"UPDATE assignments SET answer='%v', duration=%v WHERE user_id=%v AND pair_id=%v",
-		answer, duration, userID, pairID)
+		"UPDATE assignments SET answer='%v', duration=%v WHERE id=%v",
+		answer, duration, assignmentID)
 
 	_, err := repo.db.Exec(cmd)
 

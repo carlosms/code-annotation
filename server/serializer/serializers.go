@@ -83,6 +83,7 @@ func NewExperimentResponse(e *model.Experiment) *Response {
 }
 
 type assignmentResponse struct {
+	ID           int     `json:"id"`
 	UserID       int     `json:"userId"`
 	PairID       int     `json:"pairId"`
 	ExperimentID int     `json:"experimentId"`
@@ -100,7 +101,7 @@ func NewAssignmentsResponse(as []*model.Assignment) *Response {
 			answer = &a.Answer.String
 		}
 
-		assignments[i] = assignmentResponse{a.UserID, a.PairID,
+		assignments[i] = assignmentResponse{a.ID, a.UserID, a.PairID,
 			a.ExperimentID, answer, a.Duration}
 	}
 

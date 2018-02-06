@@ -17,6 +17,8 @@ const (
 	alterSequenceSQL = `ALTER SEQUENCE <TABLE>_id_seq RESTART WITH $1`
 )
 
+var tables = []string{"users", "experiments", "file_pairs", "assignments"}
+
 // Copy dumps the contents of the origin DB into the destination DB. The
 // destination DB should be bootstrapped, but empty
 func Copy(originDB DB, destDB DB, opts Options) error {
@@ -35,8 +37,6 @@ func Copy(originDB DB, destDB DB, opts Options) error {
 			tx.Rollback()
 		}
 	}()
-
-	tables := []string{"users", "experiments", "file_pairs", "assignments"}
 
 	for _, table := range tables {
 		// SELECT * FROM <TABLE>
@@ -122,8 +122,6 @@ func fixSequences(db DB, logger *log.Logger) {
 	if db.driver != postgres {
 		return
 	}
-
-	tables := []string{"users", "experiments", "file_pairs"}
 
 	for _, table := range tables {
 		selectCmd := strings.Replace(maxIDSQL, tablePlaceholder, table, 1)

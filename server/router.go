@@ -58,7 +58,7 @@ func Router(
 			r.Route("/assignments", func(r chi.Router) {
 
 				r.Get("/", handler.Get(handler.GetAssignmentsForUserExperiment(assignmentRepo)))
-				r.Put("/{pairId}", handler.Get(handler.SaveAssignment(assignmentRepo)))
+				r.Put("/{assignmentId}", handler.Get(handler.SaveAssignment(assignmentRepo)))
 			})
 
 			r.Get("/file-pairs/{pairId}", handler.Get(handler.GetFilePairDetails(filePairRepo)))

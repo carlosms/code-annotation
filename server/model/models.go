@@ -20,6 +20,7 @@ type Experiment struct {
 
 // Assignment tracks the answer of a worker to a given FilePair of an Experiment
 type Assignment struct {
+	ID           int
 	UserID       int
 	PairID       int
 	ExperimentID int
