@@ -62,22 +62,6 @@ func (repo *Assignments) Initialize(userID int, experimentID int) ([]*model.Assi
 	return repo.GetAll(userID, experimentID)
 }
 
-// Create stores an Assignment into the DB, and returns that new Assignment
-func (repo *Assignments) Create(as *model.Assignment) error {
-
-	_, err := repo.db.Exec(
-		`INSERT INTO assignments (id, user_id, pair_id, experiment_id, answer, duration)
-		VALUES ($1, $2, $3, $4, $5, $6)`,
-		as.ID, as.UserID, as.PairID, as.ExperimentID, as.Answer, as.Duration)
-
-	if err != nil {
-		return err
-	}
-
-	as, err = repo.Get(as.UserID, as.PairID, as.ExperimentID)
-	return err
-}
-
 // getWithQuery builds a Assignment from the given sql QueryRow. If the
 // Assignment does not exist, it returns nil, nil
 func (repo *Assignments) getWithQuery(queryRow *sql.Row) (*model.Assignment, error) {
@@ -101,14 +85,6 @@ func (repo *Assignments) getWithQuery(queryRow *sql.Row) (*model.Assignment, err
 func (repo *Assignments) GetByID(id int) (*model.Assignment, error) {
 	return repo.getWithQuery(
 		repo.db.QueryRow("SELECT * FROM assignments WHERE id=$1", id))
-}
-
-// Get returns the Assignment for the given user, pair and experiment IDs. If
-// the Assignment does not exist, it returns nil, nil
-func (repo *Assignments) Get(userID, pairID, experimentID int) (*model.Assignment, error) {
-	return repo.getWithQuery(repo.db.QueryRow(
-		"SELECT * FROM assignments WHERE user_id=$1 AND pair_id=$2 AND experiment_id=$3",
-		userID, pairID, experimentID))
 }
 
 // GetAll returns all the Assignments for the given user and experiment IDs.

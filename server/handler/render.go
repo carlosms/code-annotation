@@ -67,18 +67,17 @@ func write(w http.ResponseWriter, r *http.Request, response *serializer.Response
 	w.Write(content)
 }
 
-// URLParamInt returns the url parameter from a http.Request object. If the
+// urlParamInt returns the url parameter from an http.Request object. If the
 // param cannot be converted to int, it returns a serializer.NewHTTPError
-func urlParamInt(r *http.Request, key string) (val int, err error) {
+func urlParamInt(r *http.Request, key string) (int, error) {
 	str := chi.URLParam(r, key)
-	val, err = strconv.Atoi(str)
+	val, err := strconv.Atoi(str)
 
 	if err != nil {
-		val = 0
-		err = serializer.NewHTTPError(http.StatusBadRequest,
-			fmt.Sprintf("Wrong format for URL parameter %q; received %q", key, str),
-		)
+		err = serializer.NewHTTPError(
+			http.StatusBadRequest,
+			fmt.Sprintf("Wrong format for URL parameter %q; received %q", key, str))
 	}
 
-	return
+	return val, err
 }
