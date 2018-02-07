@@ -34,9 +34,10 @@ func (repo *Experiments) getWithQuery(queryRow *sql.Row) (*model.Experiment, err
 	}
 }
 
+const selectExperimentsSQL = `SELECT * FROM experiments WHERE id=$1`
+
 // GetByID returns the Experiment with the given ID. If the Experiment does not
 // exist, it returns nil, nil
 func (repo *Experiments) GetByID(id int) (*model.Experiment, error) {
-	return repo.getWithQuery(
-		repo.db.QueryRow("SELECT * FROM experiments WHERE id=$1", id))
+	return repo.getWithQuery(repo.db.QueryRow(selectExperimentsSQL, id))
 }

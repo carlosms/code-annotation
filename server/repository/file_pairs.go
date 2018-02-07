@@ -41,9 +41,10 @@ func (repo *FilePairs) getWithQuery(queryRow *sql.Row) (*model.FilePair, error) 
 	}
 }
 
+const selectFilePairsSQL = `SELECT * FROM file_pairs WHERE id=$1`
+
 // GetByID returns the FilePair with the given ID. If the FilePair does not
 // exist, it returns nil, nil
 func (repo *FilePairs) GetByID(id int) (*model.FilePair, error) {
-	return repo.getWithQuery(
-		repo.db.QueryRow("SELECT * FROM file_pairs WHERE id=$1", id))
+	return repo.getWithQuery(repo.db.QueryRow(selectFilePairsSQL, id))
 }

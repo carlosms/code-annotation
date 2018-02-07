@@ -21,6 +21,13 @@ func NewAssignments(db *sql.DB) *Assignments {
 // User are requested for a given Experiment, but they have not been yet created
 var ErrNoAssignmentsInitialized = fmt.Errorf("No assignments initialized")
 
+const (
+	insertAssignmentsSQL = `INSERT INTO assignments (user_id, pair_id, experiment_id, answer, duration) VALUES ($1, $2, $3, $4, $5)`
+	selectIDFilePairsSQL = `SELECT id FROM file_pairs WHERE experiment_id=$1`
+	selectAssignmentsSQL = `SELECT * FROM assignments WHERE user_id=$1 AND experiment_id=$2`
+	updateAssignmentsSQL = `UPDATE assignments SET answer='%v', duration=%v WHERE id=%v`
+)
+
 // Initialize builds the assignments for the given user and experiment IDs
 func (repo *Assignments) Initialize(userID int, experimentID int) ([]*model.Assignment, error) {
 	tx, err := repo.db.Begin()
@@ -28,15 +35,12 @@ func (repo *Assignments) Initialize(userID int, experimentID int) ([]*model.Assi
 		return nil, err
 	}
 
-	insert, err := tx.Prepare(
-		`INSERT INTO assignments (user_id, pair_id, experiment_id, answer, duration)
-		VALUES ($1, $2, $3, $4, $5)`)
+	insert, err := tx.Prepare(insertAssignmentsSQL)
 	if err != nil {
 		return nil, fmt.Errorf("DB error: %v", err)
 	}
 
-	rows, err := repo.db.Query(
-		"SELECT id FROM file_pairs WHERE experiment_id=$1", experimentID)
+	rows, err := repo.db.Query(selectIDFilePairsSQL, experimentID)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting file_pairs from the DB: %v", err)
 	}
@@ -90,9 +94,7 @@ func (repo *Assignments) GetByID(id int) (*model.Assignment, error) {
 // GetAll returns all the Assignments for the given user and experiment IDs.
 // Returns an ErrNoAssignmentsInitialized if they do not exist yet
 func (repo *Assignments) GetAll(userID, experimentID int) ([]*model.Assignment, error) {
-	rows, err := repo.db.Query(
-		"SELECT * FROM assignments WHERE user_id=$1 AND experiment_id=$2",
-		userID, experimentID)
+	rows, err := repo.db.Query(selectAssignmentsSQL, userID, experimentID)
 	if err != nil {
 		return nil, fmt.Errorf("Error getting assignments from the DB: %v", err)
 	}
@@ -126,9 +128,7 @@ func (repo *Assignments) Update(assignmentID int, answer string, duration int) e
 		return fmt.Errorf("Wrong answer provided: '%s'", answer)
 	}
 
-	cmd := fmt.Sprintf(
-		"UPDATE assignments SET answer='%v', duration=%v WHERE id=%v",
-		answer, duration, assignmentID)
+	cmd := fmt.Sprintf(updateAssignmentsSQL, answer, duration, assignmentID)
 
 	_, err := repo.db.Exec(cmd)
 
