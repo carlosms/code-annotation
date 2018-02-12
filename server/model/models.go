@@ -1,6 +1,10 @@
 package model
 
-import "database/sql"
+import (
+	"database/sql"
+	"database/sql/driver"
+	"errors"
+)
 
 // User of the application; can be Requester or Workers
 type User struct {
@@ -48,8 +52,43 @@ type File struct {
 	Hash         string
 }
 
+// Feature represents one name-value feature of file
+type Feature struct {
+	Name   string
+	Weight float64
+}
+
 // Role represents the position of a app User
 type Role string
+
+// Value returns the string value of the Role
+func (r Role) Value() (driver.Value, error) {
+	if isValidRole(r) {
+		return string(r), nil
+	}
+
+	return "", errors.New("invalid Role")
+}
+
+// Scan sets the Role with the passed string
+func (r *Role) Scan(value interface{}) error {
+	if v, ok := value.([]byte); ok && isValidRole(Role(string(v))) {
+		*r = Role(v)
+		return nil
+	}
+
+	return errors.New("can't scan a valid Role")
+}
+
+func isValidRole(r Role) bool {
+	for _, role := range []Role{Worker, Requester} {
+		if r == role {
+			return true
+		}
+	}
+
+	return false
+}
 
 const (
 	// Requester is the role of a user that can review assignments, users, stats of experiments...

@@ -1,4 +1,3 @@
-import mocks from './mocks';
 import TokenService from '../services/token';
 
 export const serverUrl =
@@ -12,9 +11,17 @@ function checkStatus(resp) {
     TokenService.remove();
   }
   if (resp.status < 200 || resp.status >= 300) {
-    const error = new Error(resp.statusText);
-    error.response = resp;
-    throw error;
+    return resp
+      .json()
+      .catch(() => {
+        throw new Error(resp.statusText);
+      })
+      .then(json => {
+        if (json.errors) {
+          throw json.errors;
+        }
+        throw new Error(resp.statusText);
+      });
   }
   return resp;
 }
@@ -47,14 +54,18 @@ function normalizeErrors(err) {
 
 function apiCall(url, options = {}) {
   const token = TokenService.get();
-
-  return fetch(apiUrl(url), {
+  const fetchOptions = {
     ...options,
     headers: {
       ...options.headers,
       Authorization: `Bearer ${token}`,
     },
-  })
+  };
+  if (options.body) {
+    fetchOptions.body = JSON.stringify(options.body);
+    fetchOptions.headers['Content-Type'] = 'application/json';
+  }
+  return fetch(apiUrl(url), fetchOptions)
     .then(checkStatus)
     .then(resp => resp.json())
     .then(json => {
@@ -79,23 +90,42 @@ function getAssignments(experimentId) {
 }
 
 function getFilePair(experimentId, pairId) {
-  return apiCall(`/api/experiments/${experimentId}/filePairs/${pairId}`);
+  return apiCall(`/api/experiments/${experimentId}/file-pairs/${pairId}`);
 }
 
-// eslint-disable-next-line
-let exportObject = {
-  me,
+function putAnswer(experimentId, assignmentId, answer) {
+  return apiCall(
+    `/api/experiments/${experimentId}/assignments/${assignmentId}`,
+    {
+      method: 'PUT',
+      body: answer,
+    }
+  );
+}
 
+function exportList() {
+  return apiCall('/api/exports');
+}
+
+function exportCreate() {
+  return apiCall(`/api/exports`, {
+    method: 'POST',
+  });
+}
+
+function exportDownload(filename) {
+  const token = TokenService.get();
+  const url = apiUrl(`/api/exports/${filename}/download?jwt_token=${token}`);
+  window.open(url, '_blank');
+}
+
+export default {
+  me,
   getExperiment,
   getAssignments,
   getFilePair,
+  putAnswer,
+  exportList,
+  exportCreate,
+  exportDownload,
 };
-if (process.env.NODE_ENV !== 'test') {
-  exportObject = {
-    ...mocks,
-    me,
-  };
-}
-
-// eslint-disable-next-line
-export default exportObject;
