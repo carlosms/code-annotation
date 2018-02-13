@@ -11,6 +11,14 @@ import diffString from '../api/respMock';
 import './Review.less';
 
 class Review extends Component {
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.name !== this.props.name) {
+      document.title = `Review for experiment ${
+        nextProps.name
+      } | source{d} Code Annotation Tool`;
+    }
+  }
+
   render() {
     const { user } = this.props;
 

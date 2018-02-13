@@ -25,6 +25,12 @@ import { makeUrl } from '../state/routes';
 import './Experiment.less';
 
 class Experiment extends Component {
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.name !== this.props.name) {
+      document.title = `${nextProps.name} | source{d} Code Annotation Tool`;
+    }
+  }
+
   render() {
     const { user } = this.props;
 

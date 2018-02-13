@@ -4,6 +4,10 @@ import { serverUrl } from '../api';
 import './Index.less';
 
 class Index extends Component {
+  componentDidMount() {
+    document.title = `source{d} Code Annotation Tool`;
+  }
+
   render() {
     return (
       <Grid fluid className="index-page">
