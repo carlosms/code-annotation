@@ -18,9 +18,7 @@ class Review extends Component {
     return (
       <div className="review-page">
         <Helmet>
-          <title>{`Review for experiment ${
-            this.props.name
-          } | source{d} Code Annotation Tool`}</title>
+          <title>{`Review for experiment ${this.props.name}`}</title>
         </Helmet>
         <PageHeader {...user} />
         <Grid fluid className="review-page__grid">

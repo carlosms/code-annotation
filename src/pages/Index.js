@@ -9,7 +9,7 @@ class Index extends Component {
     return (
       <Grid fluid className="index-page">
         <Helmet>
-          <title>{'source{d} Code Annotation Tool'}</title>
+          <title>Dashboard</title>
         </Helmet>
         <Row>
           <Col xs={12}>

@@ -32,7 +32,7 @@ class Experiment extends Component {
     return (
       <div className="ex-page">
         <Helmet>
-          <title>{`${this.props.name} | source{d} Code Annotation Tool`}</title>
+          <title>{this.props.name}</title>
         </Helmet>
         <PageHeader {...user} />
         {this.renderMain()}

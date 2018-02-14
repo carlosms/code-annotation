@@ -21,7 +21,7 @@ class Final extends Component {
     return (
       <div className="final-page">
         <Helmet>
-          <title>{`${expName} | source{d} Code Annotation Tool`}</title>
+          <title>{expName}</title>
         </Helmet>
         <PageHeader {...user} />
         <Grid>
