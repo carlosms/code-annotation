@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Grid, Row, Col } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { push } from 'redux-little-router';
+import { Helmet } from 'react-helmet';
 import PageHeader from '../components/PageHeader';
 import Loader from '../components/Loader';
 import Breadcrumbs from '../components/Breadcrumbs';
@@ -25,17 +26,14 @@ import { makeUrl } from '../state/routes';
 import './Experiment.less';
 
 class Experiment extends Component {
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.name !== this.props.name) {
-      document.title = `${nextProps.name} | source{d} Code Annotation Tool`;
-    }
-  }
-
   render() {
     const { user } = this.props;
 
     return (
       <div className="ex-page">
+        <Helmet>
+          <title>{`${this.props.name} | source{d} Code Annotation Tool`}</title>
+        </Helmet>
         <PageHeader {...user} />
         {this.renderMain()}
       </div>

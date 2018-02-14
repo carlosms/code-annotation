@@ -1,16 +1,16 @@
 import React, { Component } from 'react';
 import { Grid, Row, Col, Button } from 'react-bootstrap';
+import { Helmet } from 'react-helmet';
 import { serverUrl } from '../api';
 import './Index.less';
 
 class Index extends Component {
-  componentDidMount() {
-    document.title = `source{d} Code Annotation Tool`;
-  }
-
   render() {
     return (
       <Grid fluid className="index-page">
+        <Helmet>
+          <title>{'source{d} Code Annotation Tool'}</title>
+        </Helmet>
         <Row>
           <Col xs={12}>
             <h1 className="index-page__header">

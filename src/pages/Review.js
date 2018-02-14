@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Grid, Row, Col } from 'react-bootstrap';
 import SplitPane from 'react-split-pane';
+import { Helmet } from 'react-helmet';
 import PageHeader from '../components/PageHeader';
 import Breadcrumbs from '../components/Breadcrumbs';
 import Selector from '../components/Experiment/Selector';
@@ -11,19 +12,16 @@ import diffString from '../api/respMock';
 import './Review.less';
 
 class Review extends Component {
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.name !== this.props.name) {
-      document.title = `Review for experiment ${
-        nextProps.name
-      } | source{d} Code Annotation Tool`;
-    }
-  }
-
   render() {
     const { user } = this.props;
 
     return (
       <div className="review-page">
+        <Helmet>
+          <title>{`Review for experiment ${
+            this.props.name
+          } | source{d} Code Annotation Tool`}</title>
+        </Helmet>
         <PageHeader {...user} />
         <Grid fluid className="review-page__grid">
           <Row className="review-page__header">
