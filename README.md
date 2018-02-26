@@ -20,7 +20,7 @@ Source code annotation tool offers an UI to annotate source code and review thes
 
 ## Installation
 
-## Environment Variables
+### Environment Variables
 
 The next sections make use of several environment variables to configure the application. In this table you will find all of them grouped as a quick reference:
 
@@ -33,15 +33,13 @@ The next sections make use of several environment variables to configure the app
 | `CAT_UI_DOMAIN` | | `<CAT_HOST>:<CAT_PORT>` | TODO |
 | `CAT_DB_CONNECTION` | | `sqlite:///var/code-annotation/internal.db` | Points to the internal application database. Read below for the complete syntax |
 | `CAT_EXPORTS_PATH` | | `./exports` | Folder where the SQLite files will be created when requested from `http://<your-hostname>/export` |
-| | | | | |
 | `CAT_OAUTH_CLIENT_ID` | YES | - | GitHub application OAuth credentials |
 | `CAT_OAUTH_CLIENT_SECRET` | YES | - | GitHub application OAuth credentials |
 | `CAT_OAUTH_RESTRICT_ACCESS` | | - | Application access control based on GitHub groups or teams |
 | `CAT_OAUTH_RESTRICT_REQUESTER_ACCESS` | | - | User role control based on GitHub groups or teams |
-| | | | | |
 | `CAT_JWT_SIGNING_KEY` | YES | - | Key used to sign JWT (JSON Web Tokens) in the server |
 
-## Github OAuth Tokens
+### Github OAuth Tokens
 
 You need an OAuth application on GitHub. See [how to create OAuth applications on GitHub](https://developer.github.com/apps/building-oauth-apps/creating-an-oauth-app/). Make sure the "Authorization callback URL" points to `http://<your-hostname>/oauth-callback`.
 
@@ -50,7 +48,11 @@ Retrieve the values for your application's Client ID and Client Secret from the 
 ### Docker
 
 ```bash
-$ docker run --rm -p 8080:8080 srcd/code-annotation
+$ docker run \
+    -e CAT_OAUTH_CLIENT_ID=XXXX \
+    -e CAT_OAUTH_CLIENT_SECRET=YYYY \
+    -e CAT_JWT_SIGNING_KEY=ZZZZ \
+    --rm -p 8080:8080 srcd/code-annotation
 ```
 
 ### Non-docker
