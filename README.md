@@ -25,7 +25,7 @@ Source code annotation tool offers an UI to annotate source code and review thes
 The next sections make use of several environment variables to configure the application. In this table you will find all of them grouped as a quick reference:
 
 | Variable | Required | Default value | Meaning |
-| -- | -- | -- | -- | -- |
+| -- | -- | -- | -- |
 | `CAT_ENV` | | `production` | Sets the log level. Use `dev` to enable debug log messages |
 | `CAT_HOST` | | `0.0.0.0` | IP address to bind the HTTP server |
 | `CAT_PORT` | | `8080` | Port address to bind the HTTP server |
